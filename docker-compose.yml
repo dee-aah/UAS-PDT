@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: citusdata/citus
+    container_name: postgres_perpus
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: perpus_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongo_perpus
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+
+  redis:
+    image: redis:7.0
+    container_name: redis_perpus
+    ports:
+      - "6379:6379"
+  python_app:
+    build: .
+    container_name: python_app
+    depends_on:
+      - postgres
+      - mongodb
+      - redis
+    volumes:
+      - .:/app 
+    command: ["sh", "-c", "python library_app_integration.py && tail -f /dev/null"]
+
+volumes:
+  pgdata:
+  mongodata:
+  redisdata:

@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  coordinator:
+    image: citusdata/citus
+    container_name: pg_coordinator
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5433"
+    command: ["postgres", "-c", "shared_preload_libraries=citus"]
+    volumes:
+      - coord_data:/var/lib/postgresql/data
+
+  worker:
+    image: citusdata/citus
+    container_name: pg_worker
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5434"
+    command: ["postgres", "-c", "shared_preload_libraries=citus"]
+    volumes:
+      - worker_data:/var/lib/postgresql/data 
+
+volumes:
+  coord_data:
+  worker_data:

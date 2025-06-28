@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  mongo_primary:
+    image: mongo:6.0
+    container_name: mongo_primary
+    ports:
+      - "27117:27017"
+    command: ["mongod", "--replSet", "rs0"]
+    networks:
+      - mongo-net
+    volumes:
+      - primarydata:/data/db
+
+  mongo_secondary:
+    image: mongo:6.0
+    container_name: mongo_secondary
+    ports:
+      - "27118:27017"
+    command: ["mongod", "--replSet", "rs0"]
+    networks:
+      - mongo-net
+    volumes:
+      - secondarydata:/data/db
+
+networks:
+  mongo-net:
+
+volumes:
+  primarydata:
+  secondarydata:

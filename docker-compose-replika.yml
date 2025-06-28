@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  postgres_primary:
+    image: postgres:14
+    container_name: postgres_primary
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5435:5432"
+    networks:
+      - pg_net
+    volumes:
+      - pg_primary:/var/lib/postgresql/data
+    command: >
+      postgres -c wal_level=replica
+               -c max_wal_senders=10
+               -c max_replication_slots=10
+               -c listen_addresses='*'
+
+  postgres_replica:
+    image: postgres:14
+    container_name: postgres_replica
+    restart: always
+    depends_on:
+      - postgres_primary
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5436:5432"
+    networks:
+      - pg_net
+    volumes:
+      - pg_replica:/var/lib/postgresql/data
+    entrypoint: >
+      bash -c "
+        sleep 10 &&
+        rm -rf /var/lib/postgresql/data/* &&
+        echo 'host replication all all trust' >> /usr/share/postgresql/pg_hba.conf &&
+        PGPASSWORD=password pg_basebackup -h postgres_primary -U postgres -D /var/lib/postgresql/data -Fp -Xs -P -R &&
+        postgres
+      "
+
+networks:
+  pg_net:
+
+volumes:
+  pg_primary:
+  pg_replica:
