@@ -1,30 +1,41 @@
 version: '3.9'
 
 services:
-  coordinator:
-    image: citusdata/citus
+  pg_coordinator:
+    image: citusdata/citus:11.3
     container_name: pg_coordinator
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "5433:5433"
-    command: ["postgres", "-c", "shared_preload_libraries=citus"]
-    volumes:
-      - coord_data:/var/lib/postgresql/data
+      - "5433:5432"
+    command: >
+      postgres -c shared_preload_libraries=citus
+               -c wal_level=logical
+               -c listen_addresses='*'
+               -c max_wal_senders=10
+               -c max_replication_slots=10
+    networks:
+      - citusnet
 
-  worker:
-    image: citusdata/citus
+  pg_worker:
+    image: citusdata/citus:11.3
     container_name: pg_worker
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "5434:5434"
-    command: ["postgres", "-c", "shared_preload_libraries=citus"]
-    volumes:
-      - worker_data:/var/lib/postgresql/data 
-
-volumes:
-  coord_data:
-  worker_data:
+      - "5434:5432"
+    command: >
+      postgres -c shared_preload_libraries=citus
+               -c wal_level=logical
+               -c listen_addresses='*'
+               -c max_wal_senders=10
+               -c max_replication_slots=10
+    networks:
+      - citusnet
+  
+networks:
+  citusnet:
