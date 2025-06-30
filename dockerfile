@@ -13,3 +13,5 @@ COPY . .
 
 # Jalankan program Python utama
 CMD ["python", "library_app_integration.py"]
+COPY app.py .
+

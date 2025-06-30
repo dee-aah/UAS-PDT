@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  postgres_primary:
+    image: postgres:14
+    container_name: postgres_primary
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5437:5432"
+    volumes:
+      - primary_data:/var/lib/postgresql/data
+      - ./init-primary.sh:/docker-entrypoint-initdb.d/init-primary.sh
+    networks:
+      - pgnet
+
+  postgres_replica:
+    image: postgres:14
+    container_name: postgres_replica
+    depends_on:
+      - postgres_primary
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    volumes:
+      - replica_data:/var/lib/postgresql/data
+    networks:
+      - pgnet
+    command: >
+      bash -c "
+        until pg_isready -h postgres_primary -U postgres; do sleep 2; done &&
+        rm -rf /var/lib/postgresql/data/* &&
+        pg_basebackup -h postgres_primary -U postgres -D /var/lib/postgresql/data -Fp -Xs -P -R &&
+        echo \"primary_conninfo = 'host=postgres_primary port=5432 user=postgres password=postgres'\" >> /var/lib/postgresql/data/postgresql.auto.conf &&
+        echo \"hot_standby = on\" >> /var/lib/postgresql/data/postgresql.conf &&
+        exec postgres
+      "
+
+volumes:
+  primary_data:
+  replica_data:
+
+networks:
+  pgnet:

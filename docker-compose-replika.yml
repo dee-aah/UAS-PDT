@@ -1,46 +1,31 @@
-version: '3.9'
+version: '3.8'
 
 services:
-  postgres_primary:
-    image: postgres:14
-    container_name: postgres_primary
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+  mongo_primary:
+    image: mongo:6
+    container_name: mongo_primary
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     ports:
-      - "5438:5432"
-    volumes:
-      - pg_primary_data:/var/lib/postgresql/data
-      - ./init-primary.sh:/docker-entrypoint-initdb.d/init-primary.sh
+      - "27019:27017"
     networks:
-      - pg_net
+      - mongo_net
+    volumes:
+      - mongo_primary_data:/data/db
 
-  postgres_replica:
-    image: postgres:14
-    container_name: postgres_replica
-    depends_on:
-      - postgres_primary
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+  mongo_secondary:
+    image: mongo:6
+    container_name: mongo_secondary
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     ports:
-      - "5439:5432"
-    command: >
-      bash -c "
-        sleep 20 &&
-        rm -rf /var/lib/postgresql/data/* &&
-        PGPASSWORD=postgres pg_basebackup -h postgres_primary -U postgres -D /var/lib/postgresql/data -Fp -Xs -P -R &&
-        echo 'host replication all all 0.0.0.0/0 trust' >> /var/lib/postgresql/data/pg_hba.conf &&
-        postgres
-      "
-    volumes:
-      - pg_replica_data:/var/lib/postgresql/data
+      - "27018:27017"
     networks:
-      - pg_net
-
-volumes:
-  pg_primary_data:
-  pg_replica_data:
+      - mongo_net
+    volumes:
+      - mongo_secondary_data:/data/db
 
 networks:
-  pg_net:
+  mongo_net:
+
+volumes:
+  mongo_primary_data:
+  mongo_secondary_data:

@@ -16,11 +16,23 @@ services:
   mongodb:
     image: mongo:6.0
     container_name: mongo_perpus
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     ports:
       - "27017:27017"
+    networks:
+      - perpus_net
     volumes:
       - mongodata:/data/db
-
+  mongo_perpus_secondary:
+    image: mongo:6
+    container_name: mongo_perpus_secondary
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27020:27017"
+    networks:
+      - perpus_net
+    volumes:
+      - mongo_secondary_data:/data/db
   redis:
     image: redis:7.0
     container_name: redis_perpus
@@ -41,3 +53,6 @@ volumes:
   pgdata:
   mongodata:
   redisdata:
+  mongo_secondary_data:
+networks:
+  perpus_net:
