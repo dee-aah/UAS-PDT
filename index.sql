@@ -83,6 +83,9 @@ KEYS *
 -- insert lewat python untuk redis dan mongo
 docker exec -it python_app python init_redis_mongo.py
 
+-- sharding
+docker compose -f docker-compose-sharding.yml up --build
+
 docker exec -it pg_coordinator psql -U postgres
 SELECT * FROM master_add_node('pg_worker', 5432);
 
@@ -94,7 +97,8 @@ CREATE TABLE reviews (
 );
 
 SELECT create_distributed_table('reviews', 'book_id');
-
+ 
+--uji coba
 INSERT INTO reviews VALUES
  (1, 1, 'Sangat menarik', 4.5),
  (2, 2, 'Lumayan', 3.8),
@@ -102,4 +106,5 @@ INSERT INTO reviews VALUES
 
 SELECT * FROM pg_dist_placement;
 
-docker exec -it pg_worker_replica psql -U postgres
+docker exec -it pg_worker psql -U postgres
+

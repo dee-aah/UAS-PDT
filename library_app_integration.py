@@ -15,7 +15,7 @@ pg_conn = psycopg2.connect(
 r = redis.Redis(host='redis_perpus', port=6379, decode_responses=True)
 
 # --- KONEKSI MONGODB ---
-mongo_client = MongoClient("mongodb://mongo_perpus:27017")
+mongo_client = MongoClient("mongodb://mongo_perpus:27017,mongo_perpus_secondary:27017/?replicaSet=rs0")
 mongo_db = mongo_client["perpustakaan"]
 reviews_collection = mongo_db["reviews"]
 pg_cursor = pg_conn.cursor() 
