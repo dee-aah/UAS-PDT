@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  mongo_primary:
+    image: mongo:6
+    container_name: mongo_primary
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27019:27017"
+    networks:
+      - mongo_net
+    volumes:
+      - mongo_primary_data:/data/db
+
+  mongo_secondary:
+    image: mongo:6
+    container_name: mongo_secondary
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27018:27017"
+    networks:
+      - mongo_net
+    volumes:
+      - mongo_secondary_data:/data/db
+
+networks:
+  mongo_net:
+
+volumes:
+  mongo_primary_data:
+  mongo_secondary_data:
